@@ -102,6 +102,8 @@ impl Embedder {
                     });
                 }
 
+                let len = points.len();
+
                 if let Err(e) = self
                     .qdrant
                     .upsert_points(UpsertPointsBuilder::new(
@@ -112,6 +114,8 @@ impl Embedder {
                 {
                     error!("Couldn't insert vector into qdrant: {}", e);
                 }
+
+                info!("Inserted {} embeddings into Qdrant", len);
             }
         });
     }
