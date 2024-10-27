@@ -2,7 +2,7 @@ use crate::ollama::Ollama;
 use log::{error, info};
 use qdrant_client::{
     qdrant::{
-        CreateCollectionBuilder, Distance, PointStruct, UpsertPointsBuilder, Value,
+        CreateCollectionBuilder, Distance, PointId, PointStruct, UpsertPointsBuilder, Value,
         VectorParamsBuilder, Vectors,
     },
     Qdrant,
@@ -92,7 +92,7 @@ impl Embedder {
 
                 for (chunk, embedding) in embeddings {
                     points.push(PointStruct {
-                        id: None,
+                        id: Some(PointId::from(Uuid::new_v4().to_string())),
                         payload: HashMap::from([
                             ("title".to_string(), Value::from(input.title.to_string())),
                             ("uuid".to_string(), Value::from(input.uuid.to_string())),
