@@ -1,0 +1,27 @@
+[package]
+name = "embedder"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1.0.188", features = ["derive"] }
+tokio = { version = "1.41.0", features = ["full"] }
+reqwest = { version = "0.12", features = ["json"] }
+serde_json = "*"
+envy = "=0.4.2"
+env_logger = "0.11.5"
+anyhow = "1.0.91"
+log = "0.4.22"
+actix-web = "4"
+qdrant-client = "1.12.1"
+tokenizers = { version = "0.20.1", features = ["http"] }
+ahash = "0.8.11"
+
+[dependencies.uuid]
+version = "1.11.0"
+features = [
+    "v4",                # Lets you generate random UUIDs
+    "fast-rng",          # Use a faster (but still sufficiently random) RNG
+    "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
+    "serde",
+]
