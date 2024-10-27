@@ -18,7 +18,9 @@ use uuid::Uuid;
 #[derive(Debug, Clone, Deserialize)]
 pub struct Input {
     uuid: Uuid,
-    text: String,
+    title: String,
+    short: String,
+    transcription: String,
 }
 
 pub struct Embedder {
@@ -68,7 +70,7 @@ impl Embedder {
             info!("Successfully started Embedder");
 
             while let Some(input) = receiver.recv().await {
-                let embeddings = match self.ollama.embeddings(&input.text).await {
+                let mut embeddings = match self.ollama.embeddings(&input.transcription).await {
                     Ok(e) => e,
                     Err(e) => {
                         error!("Couldn't generate embeddings: {}", e);
@@ -76,12 +78,23 @@ impl Embedder {
                     }
                 };
 
+                let mut short_embeddings = match self.ollama.embeddings(&input.short).await {
+                    Ok(e) => e,
+                    Err(e) => {
+                        error!("Couldn't generate embeddings: {}", e);
+                        continue;
+                    }
+                };
+
+                embeddings.append(&mut short_embeddings);
+
                 let mut points = Vec::new();
 
                 for (chunk, embedding) in embeddings {
                     points.push(PointStruct {
                         id: None,
                         payload: HashMap::from([
+                            ("title".to_string(), Value::from(input.title.to_string())),
                             ("uuid".to_string(), Value::from(input.uuid.to_string())),
                             ("text".to_string(), Value::from(chunk)),
                         ]),
