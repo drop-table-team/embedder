@@ -1,3 +1,4 @@
+use anyhow::bail;
 use reqwest::Client;
 use serde::Deserialize;
 use tokenizers::Tokenizer;
@@ -73,7 +74,7 @@ impl Ollama {
 
         let model = "mxbai-embed-large";
 
-        let mut embedding = self
+        let response = self
             .client
             .post(url)
             .body(format!(
@@ -81,10 +82,20 @@ impl Ollama {
                 model, text
             ))
             .send()
-            .await?
-            .json::<EmbeddingResponse>()
-            .await?
-            .embedding;
+            .await?;
+
+        let bytes = response.bytes().await?.to_vec();
+
+        let mut embedding = match serde_json::from_slice::<EmbeddingResponse>(&bytes) {
+            Ok(r) => r.embedding,
+            Err(e) => {
+                bail!(
+                    "Couldn't parse embedding response '{}': {}",
+                    String::from_utf8_lossy(&bytes),
+                    e
+                )
+            }
+        };
 
         embedding.shrink_to_fit();
 

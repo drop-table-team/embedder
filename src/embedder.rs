@@ -2,13 +2,11 @@ use crate::ollama::Ollama;
 use log::{error, info};
 use qdrant_client::{
     qdrant::{
-        CreateCollectionBuilder, Distance, PointId, PointStruct, UpsertPointsBuilder, Value,
-        VectorParamsBuilder, Vectors,
+        CreateCollectionBuilder, Distance, PointStruct, UpsertPointsBuilder, VectorParamsBuilder,
     },
     Qdrant,
 };
 use serde::Deserialize;
-use std::collections::HashMap;
 use tokio::sync::{
     mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
     Mutex,
@@ -91,15 +89,15 @@ impl Embedder {
                 let mut points = Vec::new();
 
                 for (chunk, embedding) in embeddings {
-                    points.push(PointStruct {
-                        id: Some(PointId::from(Uuid::new_v4().to_string())),
-                        payload: HashMap::from([
-                            ("title".to_string(), Value::from(input.title.to_string())),
-                            ("uuid".to_string(), Value::from(input.uuid.to_string())),
-                            ("text".to_string(), Value::from(chunk)),
-                        ]),
-                        vectors: Some(Vectors::from(embedding)),
-                    });
+                    points.push(PointStruct::new(
+                        Uuid::new_v4().to_string(),
+                        embedding,
+                        [
+                            ("title", input.title.clone().into()),
+                            ("uuid", input.uuid.to_string().into()),
+                            ("text", chunk.into()),
+                        ],
+                    ));
                 }
 
                 let len = points.len();
